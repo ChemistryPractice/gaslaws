@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molar Mass & Conversions</title>
+    <style>
+        /* Color Scheme matched to Stoichiometry */
+        :root { 
+            --primary: #2c3e50; 
+            --accent: #e67e22; 
+            --error: #c0392b; 
+            --bg: #f4f7f6; 
+            --sidebar: #34495e; 
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            min-height: 100vh; 
+        }
+
+        /* Sidebar Styles */
+        .sidebar { 
+            width: 220px; 
+            background: var(--sidebar); 
+            color: white; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+        }
+
+        .sidebar h2 { 
+            font-size: 1.2rem; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid var(--accent); 
+            padding-bottom: 10px; 
+        }
+
+        .side-btn { 
+            background: transparent; 
+            border: 1px solid rgba(255,255,255,0.3); 
+            color: white; 
+            padding: 12px; 
+            text-align: left; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            font-weight: bold;
+        }
+
+        .side-btn:hover, .side-btn.active { 
+            background: var(--accent); 
+            border-color: var(--accent); 
+        }
+
+        /* Main Content */
+        .main-content { 
+            flex: 1; 
+            padding: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        .card { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 800px; 
+            text-align: center;
+        }
+
+        /* Displays */
+        #formula-display { 
+            font-size: 2.5rem; 
+            font-weight: bold; 
+            margin: 20px 0; 
+            color: var(--primary); 
+            min-height: 60px; 
+            letter-spacing: 2px;
+        }
+
+        .problem-box { 
+            background: #f9f9f9; 
+            padding: 20px; 
+            border-radius: 15px; 
+            border-left: 5px solid var(--accent); 
+            margin: 20px 0; 
+            font-size: 1.1rem; 
+            line-height: 1.5; 
+            text-align: left;
+        }
+
+        /* Buttons */
+        .gen-btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 15px 30px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            font-size: 1.1rem; 
+            margin-bottom: 10px; 
+            transition: 0.3s;
+        }
+
+        .gen-btn:hover { background: #34495e; }
+
+        .check-btn { 
+            background: var(--error); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            font-size: 1.1rem;
+            opacity: 0.9; 
+            transition: 0.3s;
+        }
+
+        .check-btn:hover { opacity: 1; }
+
+        /* Results Display */
+        #answer-display { 
+            margin-top: 20px; 
+            padding: 20px; 
+            border-radius: 10px; 
+            background: #fff5f5; 
+            color: #2c3e50; 
+            display: none; 
+            border: 1px solid #fab1a0; 
+            text-align: left;
+        }
+
+        #answer-display.visible { display: block; }
+
+        /* Fraction & Formula Styling */
+        sub { font-size: 0.6em; }
+        .setup-container { 
+            display: flex; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 5px; 
+            font-family: 'Courier New', monospace; 
+            margin-top: 15px; 
+        }
+        .fraction { 
+            display: inline-block; 
+            vertical-align: middle; 
+            text-align: center; 
+            margin: 0 5px; 
+        }
+        .numerator { 
+            display: block; 
+            border-bottom: 2px solid var(--primary); 
+            padding: 0 5px; 
+        }
+        .denominator { 
+            display: block; 
+            padding: 0 5px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Conversions</h2>
+    <button class="side-btn" onclick="setMode('massMole', this)">Mole ↔ Mass</button>
+    <button class="side-btn" onclick="setMode('moleUnits', this)">Moles ↔ Units</button>
+    <button class="side-btn" onclick="setMode('massUnits', this)">Mass ↔ Units</button>
+    
+    <button class="side-btn" onclick="setMode('volMole', this)">Volume ↔ Mole</button>
+    <button class="side-btn" onclick="setMode('volMass', this)">Volume ↔ Mass</button>
+    <button class="side-btn" onclick="setMode('volUnits', this)">Volume ↔ Units</button>
+    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+    <button class="side-btn" onclick="generateWorksheet()" style="background: var(--primary); margin-top: 10px;">
+    Generate Worksheet (20 Qs)
+</button>
+</div>
+
+<div class="main-content">
+    <div class="card">
+        <h1 id="title-display">Mole Conversions</h1>
+        
+        <div id="instruction-box" style="background-color: #f9f9f9; border-left: 5px solid var(--primary); padding: 20px; margin-bottom: 20px; border-radius: 5px; text-align: left;">
+            <h3 style="margin-top:0;">How to use this page:</h3>
+            <ol>
+                <li>Select the type of conversion from the <b>sidebar</b>.</li>
+                <li>Click <b>"Get New Compound"</b> to generate a substance.</li>
+                <li>Calculate the molar mass, then click <b>"Check Molar Mass"</b>.</li>
+                <li>Solve the specific conversion problem and check your work.</li>
+            </ol>
+        </div>
+
+        <div id="formula-display">---</div>
+
+        <button class="gen-btn" onclick="generateNew()">Get New Compound</button>
+
+        <div id="problem-text" class="problem-box">
+            Please select a conversion type from the sidebar to begin.
+        </div>
+
+        <button class="check-btn" onclick="showAnswer()">Check Molar Mass</button>
+        
+        <div id="answer-display"></div>
+    </div>
+</div>
+
+</body>
+
+<script>
+    const elements = {
+        "Na": 22.99, "K": 39.10, "Ag": 107.87, "Mg": 24.31, "Ca": 40.08, "Zn": 65.38, 
+        "Ba": 137.33, "Al": 26.98, "Fe": 55.85, "Cu": 63.55, "Pb": 207.2, "H": 1.01,
+        "Cl": 35.45, "Br": 79.90, "N": 14.01, "O": 16.00, "S": 32.06, "C": 12.01, "P": 30.97,
+        "F": 19.00, "He": 4.00, "Ar": 39.95, "Ne": 20.18
+    };
+
+    const cations = [{s:"Na", c:1}, {s:"K", c:1}, {s:"Mg", c:2}, {s:"Ca", c:2}, {s:"Al", c:3}, {s:"Fe", c:3}, {s:"Cu", c:2}];
+    const anions = [
+        {n:"Chloride", s:"Cl", c:1, atoms:{"Cl":1}},
+        {n:"Bromide", s:"Br", c:1, atoms:{"Br":1}},
+        {n:"Nitrate", s:"NO3", c:1, atoms:{"N":1, "O":3}},
+        {n:"Sulfate", s:"SO4", c:2, atoms:{"S":1, "O":4}},
+        {n:"Carbonate", s:"CO3", c:2, atoms:{"C":1, "O":3}},
+        {n:"Phosphate", s:"PO4", c:3, atoms:{"P":1, "O":4}}
+    ];
+
+    // New Gas Library for Volume Problems
+    const gasLibrary = [
+        {f: "CO2", mm: 44.01}, {f: "CH4", mm: 16.04}, {f: "NH3", mm: 17.03},
+        {f: "O2", mm: 32.00}, {f: "N2", mm: 28.01}, {f: "H2", mm: 2.02},
+        {f: "Cl2", mm: 70.90}, {f: "SO2", mm: 64.06}, {f: "He", mm: 4.00},
+        {f: "Ar", mm: 39.95}, {f: "NO2", mm: 46.01}, {f: "F2", mm: 38.00}
+    ];
+
+    let currentCompound = {};
+    let currentProblem = {};
+    let currentMode = ''; 
+    let phase = 0; // 0: Need to select mode, 1: Molar Mass, 3: Solve
+
+    function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+    function formatFormula(txt) { return txt.replace(/([A-Za-z\)])(\d+)/g, '$1<sub>$2</sub>'); }
+
+    function setMode(mode, btn) {
+        currentMode = mode;
+        document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        
+        // Reset the UI for the new mode selection
+        document.getElementById('problem-text').innerHTML = "Mode selected! Now click <strong>'Get New Compound'</strong>.";
+        document.getElementById('formula-display').innerHTML = "---";
+        document.getElementById('answer-display').style.display = 'none';
+        phase = 0; 
+    }
+
+    function generateNew() {
+        if (!currentMode) {
+            alert("Please select a conversion type from the sidebar first!");
+            return;
+        }
+
+        phase = 1;
+        currentProblem = {};
+        const isVolumeProblem = ['volMole', 'volMass', 'volUnits'].includes(currentMode);
+
+        if (isVolumeProblem) {
+            // Pull from Gas Library
+            const gas = gasLibrary[Math.floor(Math.random() * gasLibrary.length)];
+            currentCompound = { formula: gas.f, molarMass: gas.mm.toFixed(2) };
+        } else {
+            // Existing Ionic Logic
+            const cat = cations[Math.floor(Math.random() * cations.length)];
+            const ani = anions[Math.floor(Math.random() * anions.length)];
+            const common = gcd(cat.c, ani.c);
+            const s1 = ani.c / common;
+            const s2 = cat.c / common;
+
+            let mass = (elements[cat.s] * s1);
+            for (let el in ani.atoms) { mass += (elements[el] * ani.atoms[el] * s2); }
+            
+            currentCompound = {
+                formula: ((s1 > 1 && cat.s.length > 2) ? `(${cat.s})${s1}` : `${cat.s}${s1 > 1 ? s1 : ''}`) + 
+                         ((s2 > 1 && ani.s.length > 2) ? `(${ani.s})${s2}` : `${ani.s}${s2 > 1 ? s2 : ''}`),
+                molarMass: mass.toFixed(2)
+            };
+        }
+
+        document.getElementById('formula-display').innerHTML = formatFormula(currentCompound.formula);
+        document.getElementById('problem-text').innerText = "Step 1: Calculate the molar mass of this compound.";
+        document.querySelector('.check-btn').innerText = "Check Molar Mass";
+        const ad = document.getElementById('answer-display');
+        ad.style.display = 'none';
+        ad.classList.remove('visible');
+    }
+
+    function buildProblem() {
+        phase = 3;
+        const randVal = (Math.random() * 5 + 0.5).toFixed(2);
+        const randUnits = (Math.random() * 5 + 1).toFixed(2) + " E 23";
+        const randVol = (Math.random() * 50 + 10).toFixed(1);
+        const isReverse = Math.random() > 0.5;
+        const fHtml = formatFormula(currentCompound.formula);
+
+        if (currentMode === 'massMole') {
+            currentProblem = isReverse ? { q: randVal, type: "molToGram", txt: `Mass in grams of ${randVal} moles of ${fHtml}?` } 
+                                     : { q: (randVal * currentCompound.molarMass).toFixed(1), type: "gramToMol", txt: `Moles in ${(randVal * currentCompound.molarMass).toFixed(1)} grams of ${fHtml}?` };
+        } else if (currentMode === 'moleUnits') {
+            currentProblem = isReverse ? { q: randUnits, type: "unitToMol", txt: `Moles in ${randUnits} formula units of ${fHtml}?` }
+                                     : { q: randVal, type: "molToUnit", txt: `Formula units in ${randVal} moles of ${fHtml}?` };
+        } else if (currentMode === 'massUnits') {
+            const gVal = (randVal * currentCompound.molarMass).toFixed(1);
+            currentProblem = isReverse ? { q: randUnits, type: "unitToGram", txt: `Mass in grams of ${randUnits} formula units of ${fHtml}?` }
+                                     : { q: gVal, type: "gramToUnit", txt: `Formula units in ${gVal} grams of ${fHtml}?` };
+        } else if (currentMode === 'volMole') {
+            currentProblem = isReverse ? { q: randVol, type: "volToMol", txt: `Moles in ${randVol} L of ${fHtml} gas at STP?` }
+                                     : { q: randVal, type: "molToVol", txt: `Volume in liters of ${randVal} moles of ${fHtml} gas at STP?` };
+        } else if (currentMode === 'volMass') {
+            const gVal = (randVal * currentCompound.molarMass).toFixed(1);
+            currentProblem = isReverse ? { q: randVol, type: "volToGram", txt: `Mass in grams of ${randVol} L of ${fHtml} gas at STP?` }
+                                     : { q: gVal, type: "gramToVol", txt: `Volume in liters of ${gVal} grams of ${fHtml} gas at STP?` };
+        } else if (currentMode === 'volUnits') {
+            currentProblem = isReverse ? { q: randVol, type: "volToUnit", txt: `Formula units in ${randVol} L of ${fHtml} gas at STP?` }
+                                     : { q: randUnits, type: "unitToVol", txt: `Volume in liters of ${randUnits} formula units of ${fHtml} gas at STP?` };
+        }
+
+        document.getElementById('problem-text').innerHTML = "<strong>Step 2:</strong> " + currentProblem.txt;
+        document.querySelector('.check-btn').innerText = "Check Conversion Setup and Answer";
+    }
+
+    function showAnswer() {
+        const ad = document.getElementById('answer-display');
+        const mm = currentCompound.molarMass;
+        ad.style.display = 'block';
+        ad.classList.add('visible');
+
+        if (phase === 1) {
+            ad.innerHTML = `<strong>Molar Mass:</strong> ${mm} g/mol`;
+            buildProblem(); // Trigger the actual conversion problem generation
+        } else if (phase === 3) {
+            const q = parseFloat(currentProblem.q);
+            const frac = (num, den) => `<div class="fraction"><span class="numerator">${num}</span><span class="denominator">${den}</span></div>`;
+            let steps = "";
+
+            if (currentProblem.type === "molToGram") steps = `${q} mol &times; ${frac(mm+' g', '1 mol')} = <b>${(q*mm).toFixed(2)} g</b>`;
+            else if (currentProblem.type === "gramToMol") steps = `${q} g &times; ${frac('1 mol', mm+' g')} = <b>${(q/mm).toFixed(3)} mol</b>`;
+            else if (currentProblem.type === "molToUnit") steps = `${q} mol &times; ${frac('6.022&times;10²³ units', '1 mol')} = <b>${(q*6.022).toFixed(2)}&times;10²³ units</b>`;
+            else if (currentProblem.type === "unitToMol") steps = `${q}&times;10²³ units &times; ${frac('1 mol', '6.022&times;10²³ units')} = <b>${(q/6.022).toFixed(3)} mol</b>`;
+            else if (currentProblem.type === "gramToUnit") steps = `${q} g &times; ${frac('1 mol', mm+' g')} &times; ${frac('6.022&times;10²³ units', '1 mol')} = <b>${(q/mm*6.022).toFixed(2)}&times;10²³ units</b>`;
+            else if (currentProblem.type === "unitToGram") steps = `${q}&times;10²³ units &times; ${frac('1 mol', '6.022&times;10²³ units')} &times; ${frac(mm+' g', '1 mol')} = <b>${(q/6.022*mm).toFixed(2)} g</b>`;
+            else if (currentProblem.type === "volToMol") steps = `${q} L &times; ${frac('1 mol', '22.4 L')} = <b>${(q/22.4).toFixed(3)} mol</b>`;
+            else if (currentProblem.type === "molToVol") steps = `${q} mol &times; ${frac('22.4 L', '1 mol')} = <b>${(q*22.4).toFixed(1)} L</b>`;
+            else if (currentProblem.type === "volToGram") steps = `${q} L &times; ${frac('1 mol', '22.4 L')} &times; ${frac(mm+' g', '1 mol')} = <b>${(q/22.4*mm).toFixed(2)} g</b>`;
+            else if (currentProblem.type === "gramToVol") steps = `${q} g &times; ${frac('1 mol', mm+' g')} &times; ${frac('22.4 L', '1 mol')} = <b>${(q/mm*22.4).toFixed(1)} L</b>`;
+            else if (currentProblem.type === "volToUnit") steps = `${q} L &times; ${frac('1 mol', '22.4 L')} &times; ${frac('6.022&times;10²³ units', '1 mol')} = <b>${(q/22.4*6.022).toFixed(2)}&times;10²³ units</b>`;
+            else if (currentProblem.type === "unitToVol") steps = `${q}&times;10²³ units &times; ${frac('1 mol', '6.022&times;10²³ units')} &times; ${frac('22.4 L', '1 mol')} = <b>${(q/6.022*22.4).toFixed(1)} L</b>`;
+
+            ad.innerHTML = `<strong>Molar Mass:</strong> ${mm} g/mol<br><br><strong>Setup:</strong><div class="setup-container">${steps}</div>`;
+        }
+    }
+    // ADD THIS NEW FUNCTION AT THE BOTTOM OF YOUR SCRIPT TAG
+    function generateWorksheet() {
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "Generating Doc...";
+        btn.disabled = true;
+
+        const modes = ['massMole', 'moleUnits', 'massUnits', 'volMole', 'volMass', 'volUnits'];
+        let worksheetQuestions = [];
+
+        // ... [Keep your existing loop that builds the 20 questions] ...
+        for (let i = 0; i < 20; i++) {
+            const mode = modes[Math.floor(Math.random() * modes.length)];
+            const isVol = ['volMole', 'volMass', 'volUnits'].includes(mode);
+            let comp, mm;
+            if (isVol) {
+                const gas = gasLibrary[Math.floor(Math.random() * gasLibrary.length)];
+                comp = gas.f; mm = gas.mm;
+            } else {
+                const cat = cations[Math.floor(Math.random() * cations.length)];
+                const ani = anions[Math.floor(Math.random() * anions.length)];
+                const common = gcd(cat.c, ani.c);
+                const s1 = ani.c / common; const s2 = cat.c / common;
+                comp = ((s1 > 1 && cat.s.length > 2) ? `(${cat.s})${s1}` : `${cat.s}${s1 > 1 ? s1 : ''}`) + 
+                       ((s2 > 1 && ani.s.length > 2) ? `(${ani.s})${s2}` : `${ani.s}${s2 > 1 ? s2 : ''}`);
+                let m = (elements[cat.s] * s1);
+                for (let el in ani.atoms) { m += (elements[el] * ani.atoms[el] * s2); }
+                mm = m.toFixed(2);
+            }
+            const randVal = (Math.random() * 5 + 0.5).toFixed(2);
+            const randUnits = (Math.random() * 5 + 1).toFixed(2) + " E 23";
+            const randVol = (Math.random() * 50 + 10).toFixed(1);
+            const isReverse = Math.random() > 0.5;
+            let q = "";
+            if (mode === 'massMole') {
+                q = isReverse ? `What is the mass in grams of ${randVal} moles of ${comp}?` : `How many moles are in ${(randVal * mm).toFixed(1)} grams of ${comp}?`;
+            } else if (mode === 'moleUnits') {
+                q = isReverse ? `How many moles are in ${randUnits} formula units of ${comp}?` : `How many formula units are in ${randVal} moles of ${comp}?`;
+            } else if (mode === 'massUnits') {
+                q = isReverse ? `What is the mass in grams of ${randUnits} formula units of ${comp}?` : `How many formula units are in ${(randVal * mm).toFixed(1)} grams of ${comp}?`;
+            } else if (mode === 'volMole') {
+                q = isReverse ? `How many moles are in ${randVol} L of ${comp} gas at STP?` : `What is the volume in liters of ${randVal} moles of ${comp} gas at STP?`;
+            } else if (mode === 'volMass') {
+                q = isReverse ? `What is the mass in grams of ${randVol} L of ${comp} gas at STP?` : `What is the volume in liters of ${(randVal * mm).toFixed(1)} grams of ${comp} gas at STP?`;
+            } else if (mode === 'volUnits') {
+                q = isReverse ? `How many formula units are in ${randVol} L of ${comp} gas at STP?` : `What is the volume in liters of ${randUnits} formula units of ${comp} gas at STP?`;
+            }
+            worksheetQuestions.push(`${i + 1}. ${q}`);
+        }
+
+        // --- NEW FORM SUBMISSION LOGIC ---
+        // We create a temporary hidden form to bypass CORS issues
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://script.google.com/macros/s/AKfycbxxoMXoFIz_yrI3vxKTfEnDDI4Qjip5TnTy9H58IbhbUUXvJyFxGMVav4rP9CyfbBwG/exec';
+        form.target = '_blank'; // Opens the result in a new tab
+
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'questions';
+        hiddenInput.value = JSON.stringify(worksheetQuestions);
+
+        form.appendChild(hiddenInput);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        // Reset the button after a delay
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }
+</script>
+</body>
+</html>
